@@ -1,7 +1,5 @@
-
-#ifndef MBED_3RD_OV2640CFG_H
-
-#define MBED_3RD_OV2640CFG_H
+#ifndef MBED_3RD_OV2640CFG_HPP
+#define MBED_3RD_OV2640CFG_HPP
 
 /* Initialization sequence for UXGA resolution (1600x1200)*/
 const char OV2640_UXGA[][2]=
@@ -1630,7 +1628,7 @@ const char ov2640_raw_reg_tbl[][2]=
 	0xE0, 0x00, 
 };
 
-const char ov2640_jpeg_reg_tbl[][2]= 
+const char ov2640_jpg_reg_tbl[][2]= 
 {
 	0xFF, 0x01, 
 	0xE0, 0x14, // reset JPEG and DVP
