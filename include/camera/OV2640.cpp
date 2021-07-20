@@ -276,7 +276,7 @@ cameraStatusTypeDef OV2640::outputClockFreqSet(uint8_t devAddr, uint8_t divider)
     char clockFreqRegTbl[][2] = 
     {
         0xff, 0x00, 
-        0xD3, (char) (divider&0x7F) // this should be greater than 0x3A=58 when RGB565
+        0xD3, (char) (divider&0x7F)
     }; 
     for (int i=0; i<sizeof(clockFreqRegTbl)/2; i++)
     {
