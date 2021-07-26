@@ -21,7 +21,7 @@ dat(DCMI_0, DCMI_1, DCMI_2, DCMI_3, DCMI_4, DCMI_5, DCMI_6, DCMI_7)
     cmd_i2c.frequency(100000);
 
     /* test */
-    LL_GPIO_SetPinSpeed(GPIOA, LL_GPIO_PIN_6,  LL_GPIO_SPEED_FREQ_VERY_HIGH);
+    /* LL_GPIO_SetPinSpeed(GPIOA, LL_GPIO_PIN_6,  LL_GPIO_SPEED_FREQ_VERY_HIGH);
     LL_GPIO_SetPinSpeed(GPIOB, LL_GPIO_PIN_6,  LL_GPIO_SPEED_FREQ_VERY_HIGH);
     LL_GPIO_SetPinSpeed(GPIOB, LL_GPIO_PIN_7,  LL_GPIO_SPEED_FREQ_VERY_HIGH);
     LL_GPIO_SetPinSpeed(GPIOB, LL_GPIO_PIN_8,  LL_GPIO_SPEED_FREQ_VERY_HIGH);
@@ -31,7 +31,7 @@ dat(DCMI_0, DCMI_1, DCMI_2, DCMI_3, DCMI_4, DCMI_5, DCMI_6, DCMI_7)
     LL_GPIO_SetPinSpeed(GPIOC, LL_GPIO_PIN_8,  LL_GPIO_SPEED_FREQ_VERY_HIGH);
     LL_GPIO_SetPinSpeed(GPIOC, LL_GPIO_PIN_9,  LL_GPIO_SPEED_FREQ_VERY_HIGH);
     LL_GPIO_SetPinSpeed(GPIOC, LL_GPIO_PIN_11, LL_GPIO_SPEED_FREQ_VERY_HIGH);
-    LL_GPIO_SetPinSpeed(GPIOD, LL_GPIO_PIN_8,  LL_GPIO_SPEED_FREQ_VERY_HIGH);
+    LL_GPIO_SetPinSpeed(GPIOD, LL_GPIO_PIN_8,  LL_GPIO_SPEED_FREQ_VERY_HIGH); */
 }
 
 OV2640::~OV2640(){}
@@ -172,7 +172,8 @@ cameraStatusTypeDef OV2640::captureFrameRateSet(uint8_t devAddr, uint8_t divider
     char frameRateRegTbl[][2] = 
     {
         0xff, 0x01, 
-        0x11, (char) (divider&0x3F)
+        // 0x11, (char) (divider&0x3F)
+        0x11, (char) divider
     };
     for (int i=0; i<sizeof(frameRateRegTbl)/2; i++)
     {
@@ -275,8 +276,10 @@ cameraStatusTypeDef OV2640::outputClockFreqSet(uint8_t devAddr, uint8_t divider)
 
     char clockFreqRegTbl[][2] = 
     {
-        0xff, 0x00, 
-        0xD3, (char) (divider&0x7F)
+        0xFF, 0x00, 
+        0xD3, (char) (divider&0x7F),
+        0xFF, 0x01,
+        0x32, 0xB6 // default val: 0x36, alternatives: 0xB6 (half PCLK freq), 0xF6 (quarter)
     }; 
     for (int i=0; i<sizeof(clockFreqRegTbl)/2; i++)
     {
@@ -321,5 +324,27 @@ uint32_t OV2640::capture(uint8_t* cap)
     
     return length;
 }
+
+/** TEST **/
+/* uint32_t OV2640::capture(uint8_t* cap)
+{
+    uint32_t length = 0;
+    GPIO_TypeDef* port = GPIOC;
+
+    abandonFrames(1); // throw the first (not complete) frame
+
+    while(sig_v == 1) // start collecting
+    {
+        while(sig_h == 1)
+        {
+            while(sig_c == 0); 
+            cap[length] = GPIOC->IDR;
+            while(sig_c == 1); 
+            length++;
+        }
+    }
+    
+    return length;
+} */
 
 // } // end of namespace
