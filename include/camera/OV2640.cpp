@@ -278,8 +278,8 @@ cameraStatusTypeDef OV2640::outputClockFreqSet(uint8_t devAddr, uint8_t divider)
     {
         0xFF, 0x00, 
         0xD3, (char) (divider&0x7F),
-        0xFF, 0x01,
-        0x32, 0xB6 // default val: 0x36, alternatives: 0xB6 (half PCLK freq), 0xF6 (quarter)
+        // 0xFF, 0x01,
+        // 0x32, 0xB6 // default val: 0x36, alternatives: 0xB6 (half PCLK freq), 0xF6 (quarter)
     }; 
     for (int i=0; i<sizeof(clockFreqRegTbl)/2; i++)
     {
