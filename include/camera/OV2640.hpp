@@ -64,7 +64,7 @@ public:
     uint32_t capture(uint8_t*);
 
 // private members, comment the following line for public access
-private:
+// private:
     I2C cmd_i2c;
     DigitalOut cmd_pwr, cmd_rst;
     DigitalIn sig_v, sig_h, sig_c;
