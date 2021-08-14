@@ -63,12 +63,22 @@ public:
     cameraStatusTypeDef abandonFrames(uint8_t);
     uint32_t capture(uint8_t*);
 
+    cameraStatusTypeDef colorBarSet(uint8_t, bool);
+    
+    // test
+    void windowSet(uint16_t, uint16_t, uint16_t, uint16_t);
+    void imageWinSet(uint16_t, uint16_t, uint16_t, uint16_t);
+    void imageSizeSet(uint16_t, uint16_t);
+
 // private members, comment the following line for public access
 // private:
     I2C cmd_i2c;
     DigitalOut cmd_pwr, cmd_rst;
     DigitalIn sig_v, sig_h, sig_c;
     BusIn dat;
+
+    cameraStatusTypeDef SCCB_WR_Reg(char, char);
+    char SCCB_RD_Reg(char);
 };
 
 // } // end of namespace
