@@ -440,9 +440,9 @@ const char ov2640_sxga_init_reg_tbl[][2]=
 	{0x5b, 0x2C},
 	{0x5c, 0x05},
 	
-	{0xd3, 0x02},//auto设置要小心
+	{0xd3, 0x02}, //auto设置要小心
 	//
-	{0xc3, 0xed},
+	{0xc3, 0xed}, // 1 1 1 0 1 1 0 1: enable: cip, dmy, raw_gma, awb, awb_gain, pre
 	{0x7f, 0x00},
 	
 	{0xda, 0x09}, // 0 0 0 0 10 0 1: non-compressed (jpeg), RGB565, YUYV
