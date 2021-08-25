@@ -44,9 +44,14 @@ cameraStatusTypeDef OV2640::powerStateSet(cameraPowerStateTypeDef state)
         cmd_pwr = 0;
         rtn = CAMERA_OK;
     }
-    else 
+    else if (state == CAMERA_PWR_OFF)
     {
         cmd_pwr = 1;
+        rtn = CAMERA_OK;
+    }
+    else 
+    {
+        // do nothing
         rtn = CAMERA_NOT_DETECTED;
     }
     ThisThread::sleep_for(3ms);
@@ -427,7 +432,7 @@ char OV2640::SCCB_RD_Reg(char reg)
 //设置图像输出窗口 
 //sx,sy,起始地址
 //width,height:宽度(对应:horizontal)和高度(对应:vertical)
-void OV2640::windowSet(uint16_t sx, uint16_t sy, uint16_t width, uint16_t height)
+void OV2640::windowSet(uint8_t devAddr, uint16_t sx, uint16_t sy, uint16_t width, uint16_t height)
 {
 	uint16_t endx;
 	uint16_t endy;
@@ -458,7 +463,7 @@ void OV2640::windowSet(uint16_t sx, uint16_t sy, uint16_t width, uint16_t height
 //     OV2640_OutSize_Set设置的宽度和高度,根据本函数设置的宽度和高度,由DSP
 //     自动计算缩放比例,输出给外部设备.
 //width,height:宽度(对应:horizontal)和高度(对应:vertical),width和height必须是4的倍数
-void OV2640::imageWinSet(uint16_t offx, uint16_t offy, uint16_t width, uint16_t height)
+void OV2640::imageWinSet(uint8_t devAddr, uint16_t offx, uint16_t offy, uint16_t width, uint16_t height)
 {
     uint16_t hsize;
 	uint16_t vsize;
@@ -486,8 +491,10 @@ void OV2640::imageWinSet(uint16_t offx, uint16_t offy, uint16_t width, uint16_t 
 //该函数设置图像尺寸大小,也就是所选格式的输出分辨率
 //UXGA:1600*1200,SVGA:800*600,CIF:352*288
 //width,height:图像宽度和图像高度
-void OV2640::imageSizeSet(uint16_t width, uint16_t height)
+cameraStatusTypeDef OV2640::imageSizeSet(uint8_t devAddr, uint16_t width, uint16_t height)
 {
+    cameraStatusTypeDef rtn = CAMERA_OK; // return value
+
     uint8_t temp; 
 	SCCB_WR_Reg(0XFF,0X00);			
 	SCCB_WR_Reg(0XE0,0X04);			
@@ -498,6 +505,216 @@ void OV2640::imageSizeSet(uint16_t width, uint16_t height)
 	temp|=(width>>4)&0X80; 
 	SCCB_WR_Reg(0X8C,temp);	
 	SCCB_WR_Reg(0XE0,0X00);
+
+    return rtn;
+}
+
+//白平衡设置
+//0:自动
+//1:太阳sunny
+//2,阴天cloudy
+//3,办公室office
+//4,家里home
+void OV2640::lightModeSet(uint8_t mode)
+{
+	uint8_t regccval=0X5E;//Sunny 
+	uint8_t regcdval=0X41;
+	uint8_t regceval=0X54;
+	switch(mode)
+	{ 
+		case 0://auto 
+			SCCB_WR_Reg(0XFF,0X00);	 
+			SCCB_WR_Reg(0XC7,0X10);//AWB ON 
+			return;  	
+		case 2://cloudy
+			regccval=0X65;
+			regcdval=0X41;
+			regceval=0X4F;
+			break;	
+		case 3://office
+			regccval=0X52;
+			regcdval=0X41;
+			regceval=0X66;
+			break;	
+		case 4://home
+			regccval=0X42;
+			regcdval=0X3F;
+			regceval=0X71;
+			break;	
+	}
+	SCCB_WR_Reg(0XFF,0X00);	 
+	SCCB_WR_Reg(0XC7,0X40);	//AWB OFF 
+	SCCB_WR_Reg(0XCC,regccval); 
+	SCCB_WR_Reg(0XCD,regcdval); 
+	SCCB_WR_Reg(0XCE,regceval);  
+}
+
+//色度设置
+//0:-2
+//1:-1
+//2,0
+//3,+1
+//4,+2
+void OV2640::colorSaturationSet(uint8_t sat)
+{ 
+	uint8_t reg7dval=((sat+2)<<4)|0X08;
+	SCCB_WR_Reg(0XFF,0X00);		
+	SCCB_WR_Reg(0X7C,0X00);		
+	SCCB_WR_Reg(0X7D,0X02);				
+	SCCB_WR_Reg(0X7C,0X03);			
+	SCCB_WR_Reg(0X7D,reg7dval);			
+	SCCB_WR_Reg(0X7D,reg7dval); 		
+}
+
+//亮度设置
+//0:(0X00)-2
+//1:(0X10)-1
+//2,(0X20) 0
+//3,(0X30)+1
+//4,(0X40)+2
+void OV2640::brightnessSet(uint8_t bright)
+{
+  SCCB_WR_Reg(0xff, 0x00);
+  SCCB_WR_Reg(0x7c, 0x00);
+  SCCB_WR_Reg(0x7d, 0x04);
+  SCCB_WR_Reg(0x7c, 0x09);
+  SCCB_WR_Reg(0x7d, bright<<4); 
+  SCCB_WR_Reg(0x7d, 0x00); 
+}
+
+//对比度设置
+//0:-2
+//1:-1
+//2,0
+//3,+1
+//4,+2
+void OV2640::contrastSet(uint8_t contrast)
+{
+	uint8_t reg7d0val=0X20;//默认为普通模式
+	uint8_t reg7d1val=0X20;
+  	switch(contrast)
+	{
+		case 0://-2
+			reg7d0val=0X18;	 	 
+			reg7d1val=0X34;	 	 
+			break;	
+		case 1://-1
+			reg7d0val=0X1C;	 	 
+			reg7d1val=0X2A;	 	 
+			break;	
+		case 3://1
+			reg7d0val=0X24;	 	 
+			reg7d1val=0X16;	 	 
+			break;	
+		case 4://2
+			reg7d0val=0X28;	 	 
+			reg7d1val=0X0C;	 	 
+			break;	
+	}
+	SCCB_WR_Reg(0xff,0x00);
+	SCCB_WR_Reg(0x7c,0x00);
+	SCCB_WR_Reg(0x7d,0x04);
+	SCCB_WR_Reg(0x7c,0x07);
+	SCCB_WR_Reg(0x7d,0x20);
+	SCCB_WR_Reg(0x7d,reg7d0val);
+	SCCB_WR_Reg(0x7d,reg7d1val);
+	SCCB_WR_Reg(0x7d,0x06);
+}
+
+//自动曝光设置参数表,支持5个等级
+const static uint8_t OV2640_AUTOEXPOSURE_LEVEL[5][8]=
+{
+	{
+		0xFF,0x01,
+		0x24,0x20,
+		0x25,0x18,
+		0x26,0x60,
+	},
+	{
+		0xFF,0x01,
+		0x24,0x34,
+		0x25,0x1c,
+		0x26,0x00,
+	},
+	{
+		0xFF,0x01,	
+		0x24,0x3e,	
+		0x25,0x38,
+		0x26,0x81,
+	},
+	{
+		0xFF,0x01,
+		0x24,0x48,
+		0x25,0x40,
+		0x26,0x81,
+	},
+	{
+		0xFF,0x01,	
+		0x24,0x58,	
+		0x25,0x50,	
+		0x26,0x92,	
+	},
+}; 
+//OV2640自动曝光等级设置
+//level:0~4
+void OV2640::autoExposureSet(uint8_t level)
+{  
+	uint8_t i;
+	uint8_t *p=(uint8_t*)OV2640_AUTOEXPOSURE_LEVEL[level];
+	for(i=0;i<4;i++)
+	{ 
+		SCCB_WR_Reg(p[i*2],p[i*2+1]); 
+	} 
+}  
+
+//特效设置
+//0:普通模式
+//1,负片
+//2,黑白
+//3,偏红色
+//4,偏绿色
+//5,偏蓝色
+//6,复古
+void OV2640::specialEffectSet(uint8_t eft)
+{
+	uint8_t reg7d0val=0X00;//默认为普通模式
+	uint8_t reg7d1val=0X80;
+	uint8_t reg7d2val=0X80; 
+	switch(eft)
+	{
+		case 1://负片
+			reg7d0val=0X40; 
+			break;	
+		case 2://黑白
+			reg7d0val=0X18; 
+			break;	 
+		case 3://偏红色
+			reg7d0val=0X18; 
+			reg7d1val=0X40;
+			reg7d2val=0XC0; 
+			break;	
+		case 4://偏绿色
+			reg7d0val=0X18; 
+			reg7d1val=0X40;
+			reg7d2val=0X40; 
+			break;	
+		case 5://偏蓝色
+			reg7d0val=0X18; 
+			reg7d1val=0XA0;
+			reg7d2val=0X40; 
+			break;	
+		case 6://复古
+			reg7d0val=0X18; 
+			reg7d1val=0X40;
+			reg7d2val=0XA6; 
+			break;	 
+	}
+	SCCB_WR_Reg(0xff,0x00);
+	SCCB_WR_Reg(0x7c,0x00);
+	SCCB_WR_Reg(0x7d,reg7d0val);
+	SCCB_WR_Reg(0x7c,0x05);
+	SCCB_WR_Reg(0x7d,reg7d1val);
+	SCCB_WR_Reg(0x7d,reg7d2val); 
 }
 
 // } // end of namespace

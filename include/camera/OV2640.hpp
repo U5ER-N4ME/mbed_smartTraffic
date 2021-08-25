@@ -66,9 +66,17 @@ public:
     cameraStatusTypeDef colorBarSet(uint8_t, bool);
     
     // test
-    void windowSet(uint16_t, uint16_t, uint16_t, uint16_t);
-    void imageWinSet(uint16_t, uint16_t, uint16_t, uint16_t);
-    void imageSizeSet(uint16_t, uint16_t);
+    void windowSet(uint8_t, uint16_t, uint16_t, uint16_t, uint16_t);
+    void imageWinSet(uint8_t, uint16_t, uint16_t, uint16_t, uint16_t);
+    cameraStatusTypeDef imageSizeSet(uint8_t, uint16_t, uint16_t);
+
+    void lightModeSet(uint8_t);
+    void colorSaturationSet(uint8_t);
+    void brightnessSet(uint8_t);
+    void contrastSet(uint8_t);
+    void autoExposureSet(uint8_t);
+    void specialEffectSet(uint8_t);
+
 
 // private members, comment the following line for public access
 // private:
