@@ -49,6 +49,20 @@ OV2640 camera2(
     PB_7, PA_4, PA_6,
     PC_6, PC_7, PC_8, PC_9, PE_4, PD_3, PE_5, PE_6
 );
+OV2640 camera3(
+    PB_1, PA_8,
+    PB_9, PB_8, // I2C1
+    PB_7, PA_4, PA_6,
+    PC_6, PC_7, PC_8, PC_9, PE_4, PD_3, PE_5, PE_6
+);
+OV2640 camera4(
+    PB_1, PA_8,
+    PB_9, PB_8, // I2C1
+    PB_7, PA_4, PA_6,
+    PC_6, PC_7, PC_8, PC_9, PE_4, PD_3, PE_5, PE_6
+);
+OV2640* cameraList[] = {&camera1, &camera2, &camera3, &camera4};
+
 DigitalOut flash(LED3);
 
 DCMI_HandleTypeDef hdcmi;
@@ -433,6 +447,7 @@ void change(uint8_t current, uint8_t next)
     
 }
 
+
 int main(void)
 {
     t.start();
@@ -466,28 +481,30 @@ int main(void)
 
         for (int i=0; i<4; i++)
         {
-            camera1.powerStateSet(CAMERA_PWR_ON) == CAMERA_OK ? 
+            cameraList[i]->powerStateSet(CAMERA_PWR_ON) == CAMERA_OK ? 
             printf("[%7lld] Power on\n", duration_cast<milliseconds>(t.elapsed_time()).count()):
             printf("[%7lld] Power on fail\n", duration_cast<milliseconds>(t.elapsed_time()).count());
 
-            camera1.abandonFrames(1);
+            cameraList[i]->abandonFrames(1);
             /* Start DCMI-DMA transfer */
             //                         capture mode          buffer for storage         dimension(in uint32_t)
             HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, (uint32_t)captureBuffer, CAM_DIM_W * CAM_DIM_H * 2) == HAL_OK ? 
                 printf("[%7lld] DCMI started\n", duration_cast<milliseconds>(t.elapsed_time()).count()):
                 printf("[%7lld] DCMI start fail\n", duration_cast<milliseconds>(t.elapsed_time()).count());
-            camera1.abandonFrames(10);
+            cameraList[i]->abandonFrames(10);
             HAL_DCMI_Stop(&hdcmi) == HAL_OK ? 
                 printf("[%7lld] DCMI stopped\n", duration_cast<milliseconds>(t.elapsed_time()).count()):
                 printf("[%7lld] DCMI stop fail\n", duration_cast<milliseconds>(t.elapsed_time()).count());
 
-            camera1.powerStateSet(CAMERA_PWR_OFF) == CAMERA_OK ? 
+            cameraList[i]->powerStateSet(CAMERA_PWR_OFF) == CAMERA_OK ? 
                 printf("[%7lld] Power off\n", duration_cast<milliseconds>(t.elapsed_time()).count()):
                 printf("[%7lld] Power off fail\n", duration_cast<milliseconds>(t.elapsed_time()).count());
+
+            /* TODO: img process */
             
             ThisThread::sleep_for(500ms);
         }
-            
+        
         // obtained picture should be 4 frames in a line (use CAM_DIM_W*2 x CAM_DIM_H/2 to demonstrate)
         // for (int i=0; i<CAM_DIM_H/2; i++)
         // {
