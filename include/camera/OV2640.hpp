@@ -63,12 +63,30 @@ public:
     cameraStatusTypeDef abandonFrames(uint8_t);
     uint32_t capture(uint8_t*);
 
+    cameraStatusTypeDef colorBarSet(uint8_t, bool);
+    
+    // test
+    void windowSet(uint8_t, uint16_t, uint16_t, uint16_t, uint16_t);
+    void imageWinSet(uint8_t, uint16_t, uint16_t, uint16_t, uint16_t);
+    cameraStatusTypeDef imageSizeSet(uint8_t, uint16_t, uint16_t);
+
+    void lightModeSet(uint8_t);
+    void colorSaturationSet(uint8_t);
+    void brightnessSet(uint8_t);
+    void contrastSet(uint8_t);
+    void autoExposureSet(uint8_t);
+    void specialEffectSet(uint8_t);
+
+
 // private members, comment the following line for public access
 // private:
     I2C cmd_i2c;
     DigitalOut cmd_pwr, cmd_rst;
     DigitalIn sig_v, sig_h, sig_c;
     BusIn dat;
+
+    cameraStatusTypeDef SCCB_WR_Reg(char, char);
+    char SCCB_RD_Reg(char);
 };
 
 // } // end of namespace
